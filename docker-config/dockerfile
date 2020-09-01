@@ -1,0 +1,45 @@
+FROM nvidia/cuda:10.2-cudnn7-devel-ubuntu18.04
+
+# Update Apt Repositories
+RUN apt-get update && \
+    apt-get install -y curl && \
+    curl -sL https://deb.nodesource.com/setup_current.x | bash - 
+
+# Install System Dependecies
+RUN apt-get install -y \
+    python3 \
+    python3-pip \
+    nodejs \
+    zsh \
+    neovim \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Python Dependecies
+RUN pip3 install --no-cache-dir \
+    jupyterlab==2.2.0 \
+    jupyter-lsp==0.9.0 \
+    python-language-server[all]==0.34.1 \
+    torch==1.6.0 \
+    ipywidgets==7.5.1\
+    plotly==4.9.0 \
+    pandas==1.0.5 \
+    jupyter-sphinx==0.3.1 \
+    jupyter-book==0.8.0
+
+# Install Jupyter Lab Dependecies
+RUN jupyter labextension install \
+    @karosc/jupyterlab_dracula@2.0.3 \
+    @krassowski/jupyterlab-lsp@1.1.0 \
+    @jupyter-widgets/jupyterlab-manager@2.0.0 \
+    plotlywidget@4.9.0
+
+# Set Jupyter to Use ZSH
+ENV SHELL=/bin/zsh
+
+# Expose port 8888
+EXPOSE 8888
+
+# Start Jupyter Lab
+ENTRYPOINT [ "/bin/zsh", "-c" ]
+CMD [ "jupyter lab work --no-browser --allow-root --ip=0.0.0.0" ]
