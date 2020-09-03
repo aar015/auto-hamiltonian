@@ -1,9 +1,8 @@
 # Ignore jupyter checkpoints
-jupyter/.ipynb_checkpoints/*
-jupyter/.virtual_documents/*
-jupyter/src/__pycache__/*
-jupyter/src/.ipynb_checkpoints/*
-ssl/*
+work/.ipynb_checkpoints/*
+work/.virtual_documents/*
+work/src/__pycache__/*
+work/src/.ipynb_checkpoints/*
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

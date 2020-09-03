@@ -3,7 +3,7 @@
     "pyls": {
       "serverSettings": {
         "pyls.plugins.pydocstyle.enabled": true,
-        "pyls.plugins.pycodestyle.ignore": ["E703"],
+        "pyls.plugins.pycodestyle.ignore": ["E703", "E122"],
         "pyls.plugins.pycodestyle.maxLineLength": 120
       }
     }

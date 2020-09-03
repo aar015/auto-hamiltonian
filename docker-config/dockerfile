@@ -31,8 +31,7 @@ RUN pip3 install --no-cache-dir \
 RUN jupyter labextension install \
     @karosc/jupyterlab_dracula@2.0.3 \
     @krassowski/jupyterlab-lsp@1.1.0 \
-    @jupyter-widgets/jupyterlab-manager@2.0.0 \
-    plotlywidget@4.9.0
+    jupyterlab-plotly@4.9.0
 
 # Set Jupyter to Use ZSH
 ENV SHELL=/bin/zsh

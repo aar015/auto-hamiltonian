@@ -6,7 +6,7 @@
 
     // Key Map
     // Configures the keymap to use
-    "keyMap": "vim",
+    "keyMap": "default",
 
     // Theme
     // CSS file defining the corresponding
