@@ -5,11 +5,30 @@ import torch
 class State(object):
     """Something."""
 
-    def __init__(self, q, p, t, dtype=torch.float32, device=torch.device('cpu')):
+    def __init__(self, q, p, t, device=None, dtype=None):
         """Something."""
-        self._state = [torch.tensor(q, dtype=dtype, requires_grad=True, device=device),
-                       torch.tensor(p, dtype=dtype, requires_grad=True, device=device),
-                       t, None]
+        if type(q) is torch.Tensor and type(p) is torch.Tensor and type(t) is torch.Tensor():
+            if device is None:
+                if q.device != p.device or p.device != t.device:
+                    raise Exception('''Generalized Coordinate Tensor, Conjugate Momenta Tensor, and Time
+                                       Tensor must be on the same device.''')
+                device = q.device
+            if dtype is None:
+                if q.dtype != p.dtype or p.dtype != t.dtype:
+                    raise Exception('''Generalized Coordinate Tensor, Conjugate Momenta Tensor, and Time
+                                       Tensor must be of the same type.''')
+                dtype = q.dtype
+            self._state = [q.to(device=device, dtype=dtype),
+                           p.to(device=device, dtype=dtype),
+                           t.to(device=device, dtype=dtype), None]
+        else:
+            if dtype is None:
+                dtype = torch.float32
+            if device is None:
+                device = torch.device('cpu')
+            self._state = [torch.tensor(q, device=device, dtype=dtype, requires_grad=True),
+                           torch.tensor(p, device=device, dtype=dtype, requires_grad=True),
+                           torch.tensor(t, device=device, dtype=dtype), None]
 
     def __len__(self):
         """Something."""
@@ -31,56 +50,79 @@ class State(object):
     @property
     def q(self):
         """Something."""
-        return self[0]
+        return self._state[0]
 
     @property
     def p(self):
         """Something."""
-        return self[1]
+        return self._state[1]
 
     @property
     def t(self):
         """Something."""
-        return self[2]
+        return self._state[2]
 
     @property
     def H(self):
         """Something."""
-        return self[3]
-
-    @property
-    def dtype(self):
-        """Something."""
-        if self.q.dtype != self.p.dtype:
-            raise Exception('''Generalized Coordinate Tensor and Conjugate Momenta Tensor are no
-                               longer of the same type.''')
-        return self.q.dtype
+        return self._state[3]
 
     @property
     def device(self):
         """Something."""
-        if self.q.device != self.p.device:
-            raise Exception(''''Generalized Coordinate Tensor and Conjugate Momenta Tensor are no
-                                longer on the same device. If you are trying to move the state to
-                                another device use state.to(device) instead of state.q.to(device) and
-                                state.p.to(device).''')
+        if self.q.device != self.p.device or self.p.device != self.t.device:
+            raise Exception(''''Generalized Coordinate Tensor, Conjugate Momenta Tensor, and Time Tensor
+                                are no longer on the same device. This error is likely a result of
+                                directly modifing the internal state representation state._state.''')
         return self.q.device
 
-    def zero_grad(self):
+    @property
+    def dtype(self):
+        """Something."""
+        if self.q.dtype != self.p.dtype or self.p.device != self.t.device:
+            raise Exception('''Generalized Coordinate Tensor, Conjugate Momenta Tensor, and Time Tensor
+                               are no longer of the same type. This error is likely a result of directly
+                               modifing the internal state representation state._state.''')
+        return self.q.dtype
+
+    def to(self, device=None, dtype=None):
+        """Something."""
+        if all([(device is None or device == self.device),
+                (dtype is None or dtype == self.dtype)]):
+            return self
+        new_q = self.q.to(device=device, dtype=dtype)
+        new_p = self.p.to(device=device, dtype=dtype)
+        new_t = self.t.to(device=device, dtype=dtype)
+        return State(new_q, new_p, new_t)
+
+    def copy(self):
+        """Something."""
+        new_q = self.q.clone().detach().requires_grad_(True)
+        new_p = self.p.clone().detach().requires_grad_(True)
+        new_t = self.t.clone().detach()
+        return State(new_q, new_p, new_t)
+
+    @torch.no_grad()
+    def zero_grad_(self):
         """Something."""
         if self.q.grad is not None:
             self.q.grad.zero_()
         if self.p.grad is not None:
             self.p.grad.zero_()
-
-    def to(self, device):
-        """Something."""
-        self._state[0] = self.q.to(device)
-        self._state[1] = self.p.to(device)
+        if self.H is not None:
+            self.H.zero_()
 
     @torch.no_grad()
-    def advance_(self, dq_dt, dp_dt, dt):
+    def step(self, dq_dt, dp_dt, dt):
+        """Something."""
+        new_q = self.q.add(dq_dt, alpha=dt).requires_grad_(True)
+        new_p = self.p.add(dp_dt, alpha=dt).requires_grad_(True)
+        new_t = self.t.add(dt)
+        return State(new_q, new_p, new_t)
+
+    @torch.no_grad()
+    def step_(self, dq_dt, dp_dt, dt):
         """Something."""
         self._state[0].add_(dq_dt, alpha=dt)
         self._state[1].add_(dp_dt, alpha=dt)
-        self._state[2] += dt
+        self._state[2].add_(dt)
