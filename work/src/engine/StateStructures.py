@@ -18,9 +18,9 @@ class State(object):
                     raise Exception('''Generalized Coordinate Tensor, Conjugate Momenta Tensor, and Time
                                        Tensor must be of the same type.''')
                 dtype = q.dtype
-            self._state = [q.to(device=device, dtype=dtype),
-                           p.to(device=device, dtype=dtype),
-                           t.to(device=device, dtype=dtype), None]
+            self._state = [q.to(device=device, dtype=dtype).requires_grad_(True),
+                           p.to(device=device, dtype=dtype).requires_grad_(True),
+                           t.to(device=device, dtype=dtype).requires_grad_(True)]
         else:
             if dtype is None:
                 dtype = torch.float32
@@ -28,11 +28,11 @@ class State(object):
                 device = torch.device('cpu')
             self._state = [torch.tensor(q, device=device, dtype=dtype, requires_grad=True),
                            torch.tensor(p, device=device, dtype=dtype, requires_grad=True),
-                           torch.tensor(t, device=device, dtype=dtype), None]
+                           torch.tensor(t, device=device, dtype=dtype)]
 
     def __len__(self):
         """Something."""
-        return 4
+        return 3
 
     def __getitem__(self, index):
         """Something."""
@@ -42,10 +42,7 @@ class State(object):
         """Something."""
         return '\n'.join(['q: ' + str(self.q),
                           'p: ' + str(self.p),
-                          't: ' + str(self.t),
-                          'H: ' + str(self.H),
-                          'dH/dq: ' + str(self.q.grad),
-                          'dH/dp: ' + str(self.p.grad)])
+                          't: ' + str(self.t)])
 
     @property
     def q(self):
@@ -61,11 +58,6 @@ class State(object):
     def t(self):
         """Something."""
         return self._state[2]
-
-    @property
-    def H(self):
-        """Something."""
-        return self._state[3]
 
     @property
     def device(self):
@@ -109,8 +101,6 @@ class State(object):
             self.q.grad.zero_()
         if self.p.grad is not None:
             self.p.grad.zero_()
-        if self.H is not None:
-            self.H.zero_()
 
     @torch.no_grad()
     def step(self, dq_dt, dp_dt, dt):
@@ -126,3 +116,37 @@ class State(object):
         self._state[0].add_(dq_dt, alpha=dt)
         self._state[1].add_(dp_dt, alpha=dt)
         self._state[2].add_(dt)
+
+
+class BatchState(State):
+    """Something."""
+
+    def __init__(self, q, p, t, device=None, dtype=None):
+        """Something."""
+        super(BatchState, self).__init__(q, p, t, device, dtype)
+        assert len(self.q.shape) >= 2
+        assert len(self.p.shape) >= 2
+        assert len(self.t.shape) == 1
+
+    def __len__(self):
+        """Something."""
+        return len(self.t)
+
+    def __getitem__(self, index):
+        """Something."""
+        return BatchState(*self._state[:3])
+
+    def copy(self):
+        """Something."""
+        new_q = self.q.clone().detach().requires_grad_(True)
+        new_p = self.p.clone().detach().requires_grad_(True)
+        new_t = self.t.clone().detach()
+        return BatchState(new_q, new_p, new_t)
+
+    @torch.no_grad()
+    def step(self, dq_dt, dp_dt, dt):
+        """Something."""
+        new_q = self.q.add(dq_dt, alpha=dt).requires_grad_(True)
+        new_p = self.p.add(dp_dt, alpha=dt).requires_grad_(True)
+        new_t = self.t.add(dt)
+        return State(new_q, new_p, new_t)
