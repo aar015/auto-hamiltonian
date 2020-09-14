@@ -16,13 +16,15 @@ def plot_trajectory(trajectory, hamiltonian, name, skip=25, **kwargs):
     fig.update_xaxes(title='x', row=1, col=1)
     fig.update_yaxes(dict(scaleanchor='x', scaleratio=1), title='y', row=1, col=1)
     # Plot Energy
-    fig.add_trace(go.Scatter(x=trajectory.t[::skip],
-                             y=hamiltonian(trajectory, **kwargs).detach().numpy()[::skip]),
+    fig.add_trace(go.Scatter(x=trajectory.t.detach().numpy()[::skip],
+                             y=hamiltonian(trajectory, **kwargs).detach().numpy()[::skip],
+                             name='Energy'),
                   row=1, col=2)
     fig.update_yaxes(title='Energy', row=1, col=2)
     # Plot Momentum
-    fig.add_trace(go.Scatter(x=trajectory.t[::skip],
-                             y=trajectory[:, 1, :, 0].sum(1).detach().numpy()[::skip]),
+    fig.add_trace(go.Scatter(x=trajectory.t.detach().numpy()[::skip],
+                             y=trajectory[:, 1, :, 0].sum(1).detach().numpy()[::skip],
+                             name='Momentum'),
                   row=2, col=2)
     fig.update_xaxes(title='Time', row=2, col=2)
     fig.update_yaxes(title='Momentum', row=2, col=2)

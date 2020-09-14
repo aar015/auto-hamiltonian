@@ -87,21 +87,19 @@ class State(object):
             raise Exception('''t is not a scalar.''')
         return self.q.shape
 
+    @torch.no_grad()
     def to(self, device=None, dtype=None):
         """Something."""
         if (device is None or device == self.device) and (dtype is None or dtype == self.dtype):
             return self
-        new_q = self.q.to(device=device, dtype=dtype)
-        new_p = self.p.to(device=device, dtype=dtype)
-        new_t = self.t.to(device=device, dtype=dtype)
-        return type(self)(q=new_q, p=new_p, t=new_t)
+        return type(self)(q=self.q.to(device=device, dtype=dtype),
+                          p=self.p.to(device=device, dtype=dtype),
+                          t=self.t.to(device=device, dtype=dtype))
 
+    @torch.no_grad()
     def copy(self):
         """Something."""
-        new_q = self.q.clone().detach().requires_grad_(True)
-        new_p = self.p.clone().detach().requires_grad_(True)
-        new_t = self.t.clone().detach()
-        return type(self)(q=new_q, p=new_p, t=new_t)
+        return type(self)(q=self.q.clone(), p=self.p.clone(), t=self.t.clone())
 
     @torch.no_grad()
     def zero_grad(self):
