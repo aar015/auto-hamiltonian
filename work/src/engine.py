@@ -141,6 +141,18 @@ class State(object):
         self._state[2].add_(dt)
 
 
+    def predict(self, num_steps, closure):
+        """Something."""
+        state = self.copy()
+        trajectory = StateList(q=torch.empty(num_steps, *state.q.shape),
+                               p=torch.empty(num_steps, *state.q.shape),
+                               t=torch.empty(num_steps))
+        for index in range(num_steps):
+            trajectory[index] = state
+            state = closure(state)
+        return trajectory
+
+
 class StateList(State):
     """Object to represent list of states in phase space."""
 

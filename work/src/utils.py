@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 
-def plot_trajectory(trajectory, hamiltonian, name, skip=25, **kwargs):
+def plot_trajectory(trajectory, name, hamiltonian, skip=1, **kwargs):
     """Something."""
     # Make Subplots
     fig = make_subplots(rows=2, cols=2, specs=[[{'rowspan': 2}, {}], [None, {}]],

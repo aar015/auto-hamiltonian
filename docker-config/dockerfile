@@ -3,7 +3,7 @@ FROM nvidia/cuda:10.2-cudnn7-devel-ubuntu18.04
 # Update Apt Repositories
 RUN apt-get update && \
     apt-get install -y curl && \
-    curl -sL https://deb.nodesource.com/setup_current.x | bash - 
+    curl -sL https://deb.nodesource.com/setup_current.x | bash -
 
 # Install System Dependecies
 RUN apt-get install -y \
@@ -25,6 +25,8 @@ RUN pip3 install --no-cache-dir \
     ipywidgets==7.5.1\
     plotly==4.9.0 \
     pandas==1.0.5 \
+    Pillow==7.2.0 \
+    imageio==2.9.0 \
     jupyter-sphinx==0.3.1 \
     jupyter-book==0.8.0
 
